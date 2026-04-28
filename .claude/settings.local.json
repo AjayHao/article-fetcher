@@ -2,6 +2,11 @@
   "permissions": {
     "allow": [
       "WebSearch"
+    ],
+    "additionalDirectories": [
+      "\\home\\ajayhao\\.openclaw\\workspace-engineer\\skills\\article-fetcher",
+      "\\\\wsl.localhost\\Ubuntu-24.04\\home\\ajayhao\\.openclaw\\workspace-engineer\\skills\\article-fetcher",
+      "\\\\wsl.localhost\\Ubuntu-24.04\\home\\ajayhao\\.openclaw\\workspace-engineer\\skills\\article-fetcher\\processors"
     ]
   }
 }

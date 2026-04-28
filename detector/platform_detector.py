@@ -18,7 +18,7 @@ def detect_platform(url: str) -> Optional[str]:
     clean_url = url.split('?')[0].lower()
 
     # 微信公众号检测
-    if re.search(r'weixin\.qq\.com|mp\.weixin\.qq\.com|upload\.weibo\.com', clean_url):
+    if re.search(r'weixin\.qq\.com|mp\.weixin\.qq\.com', clean_url):
         return 'wechat'
 
     # 小红书检测
