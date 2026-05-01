@@ -23,9 +23,9 @@ class ConfigManager:
         self.notion_api_key = os.getenv('NOTION_API_KEY')
         self.notion_article_database_id = os.getenv('NOTION_ARTICLE_DATABASE_ID')
 
-        # 可选：Cookies
-        self.wechat_cookies = os.getenv('WECHAT_COOKIES_FILE')
-        self.zhihu_cookies = os.getenv('ZHIHU_COOKIES_FILE')
+        # 可选：Cookies（默认路径 ~/.cookies/<platform>_cookies.txt）
+        self.wechat_cookies = os.getenv('WECHAT_COOKIES_FILE', os.path.expanduser('~/.cookies/wechat_cookies.txt'))
+        self.zhihu_cookies = os.getenv('ZHIHU_COOKIES_FILE', os.path.expanduser('~/.cookies/zhihu_cookies.txt'))
 
         self._validate()
 

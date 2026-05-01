@@ -1,16 +1,13 @@
 """
 关键词提取模块
-使用 LLM 分析文章内容并提炼关键词，失败时降级到基于词频的方案
+基于词频统计提取关键词，不依赖外部 LLM API
 """
-import json
 import re
-import requests
-import os
 
 
 def extract_tags(html_content: str, max_tags: int = 5) -> list:
     """
-    使用 LLM 提取文章关键词
+    基于词频提取文章关键词（纯本地方案，不调用外部 API）
 
     Args:
         html_content (str): 文章 HTML 内容
@@ -19,78 +16,19 @@ def extract_tags(html_content: str, max_tags: int = 5) -> list:
     Returns:
         list: 关键词列表
     """
-    # 清理 HTML 标签，提取纯文本（取前 8000 字符作为上下文）
+    # 清理 HTML 标签，提取纯文本（取前 8000 字符）
     text = re.sub(r'<[^>]+>', ' ', html_content)
     text = re.sub(r'\s+', ' ', text).strip()[:8000]
 
     if not text:
         return []
 
-    # 获取 API 配置（尝试多个可能的 API endpoint）
-    api_key = os.getenv('DASHSCOPE_API_KEY')
-    model = os.getenv('DASHSCOPE_MODEL', 'qwen-turbo')
-    base_url = os.getenv('DASHSCOPE_BASE_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
-    # coding.dashscope 是编程专用 API，不支持对话模型，改用标准 API
-    if 'coding.dashscope' in base_url:
-        base_url = 'https://dashscope.aliyuncs.com/compatible-mode/v1'
-
-    if api_key:
-        try:
-            resp = requests.post(
-                f'{base_url}/chat/completions',
-                headers={
-                    'Authorization': f'Bearer {api_key}',
-                    'Content-Type': 'application/json'
-                },
-                json={
-                    'model': model,
-                    'messages': [
-                        {
-                            'role': 'system',
-                            'content': '你是一个专业的内容分析助手。请阅读用户提供的文章内容，提炼出最核心的关键词。'
-                        },
-                        {
-                            'role': 'user',
-                            'content': f'请阅读以下文章内容，提炼出 {max_tags} 个最能概括文章核心主题的关键词（中文为主，技术术语可用英文）。\n\n'
-                                       f'要求：\n'
-                                       f'1. 每个关键词 2-6 个字符\n'
-                                       f'2. 覆盖文章的核心技术点、主题领域\n'
-                                       f'3. 不要使用过于宽泛的词（如"技术"、"文章"、"api"、"src"、"ts"、"ai"、"code"）\n'
-                                       f'4. 优先选择文章中反复出现的专有名词、技术概念\n'
-                                       f'5. 直接返回 JSON 数组格式，如 ["关键词1", "关键词2"]，不要其他文字\n\n'
-                                       f'文章内容：\n{text}'
-                        }
-                    ],
-                    'temperature': 0.3,
-                    'max_tokens': 200
-                },
-                timeout=30
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            content = data['choices'][0]['message']['content'].strip()
-
-            # 尝试解析 JSON
-            # 移除可能的 markdown 代码块标记
-            content = re.sub(r'^```(?:json)?\s*', '', content)
-            content = re.sub(r'\s*```$', '', content)
-
-            tags = json.loads(content)
-            if isinstance(tags, list):
-                tags = [str(t).strip() for t in tags if str(t).strip() and len(str(t).strip()) >= 2]
-                if tags:
-                    return tags[:max_tags]
-
-        except Exception as e:
-            print(f"LLM 提取关键词失败: {e}")
-
-    # 降级方案：基于文本频率提取
-    return _fallback_extract(text, max_tags)
+    return _extract(text, max_tags)
 
 
-def _fallback_extract(text: str, max_tags: int) -> list:
+def _extract(text: str, max_tags: int) -> list:
     """
-    基于文本频率的降级关键词提取方案
+    基于文本频率提取关键词
     """
     # 中文常见停用词 + 通用技术词（避免提取到无意义词）
     stopwords = {

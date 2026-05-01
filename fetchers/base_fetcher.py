@@ -28,10 +28,20 @@ class BaseFetcher(ABC):
             cookies = {}
             with open(self.cookies_file, 'r', encoding='utf-8') as f:
                 for line in f:
-                    if '=' in line and not line.startswith('#'):
-                        parts = line.strip().split('\t')
-                        if len(parts) >= 7:
-                            cookies[parts[5]] = parts[6]
+                    line = line.strip()
+                    # 跳过纯注释行（# 后面跟空格或 tab）
+                    if not line or line.startswith('# ') or line.startswith('#\t'):
+                        continue
+                    # #HttpOnly 开头的行：移除 #HttpOnly 前缀，域名列前移
+                    if line.startswith('#HttpOnly'):
+                        line = line[len('#HttpOnly'):].strip()
+                    if '\t' not in line:
+                        continue
+                    parts = line.split('\t')
+                    # Netscape 格式: domain\tflag\tpath\tsecure\texpiration\tname\tvalue
+                    # #HttpOnly 行去掉前缀后也是 7 字段格式
+                    if len(parts) >= 7 and '=' not in parts[0]:
+                        cookies[parts[5]] = parts[6]
             logger.debug(f"加载 Cookies: {len(cookies)} 个 ({self.cookies_file})")
             return cookies
         except Exception as e:

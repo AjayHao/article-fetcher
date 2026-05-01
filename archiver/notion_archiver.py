@@ -135,7 +135,7 @@ class NotionArchiver:
         if isinstance(element, NavigableString):
             text = str(element).strip()
             if text:
-                blocks.append(self._paragraph_block(text))
+                blocks.extend(self._paragraph_block(text))
             return blocks
 
         if not isinstance(element, Tag):
@@ -166,16 +166,16 @@ class NotionArchiver:
 
         # 引用
         elif tag_name == 'blockquote':
-            blocks.append(self._quote_block(self._get_inner_text(element)))
+            blocks.extend(self._quote_block(self._get_inner_text(element)))
 
         # 代码块
         elif tag_name == 'pre':
             code_tag = element.find('code')
             code_text = code_tag.get_text() if code_tag else element.get_text()
-            blocks.append(self._code_block(code_text))
+            blocks.extend(self._code_block(code_text))
 
         elif tag_name == 'code':
-            blocks.append(self._code_block(element.get_text()))
+            blocks.extend(self._code_block(element.get_text()))
 
         # 分隔线
         elif tag_name == 'hr':
@@ -187,8 +187,8 @@ class NotionArchiver:
 
         # 图片
         elif tag_name == 'img':
-            src = element.get('data-src') or element.get('src')
-            if src:
+            src = element.get('data-original') or element.get('data-src') or element.get('src')
+            if src and not src.startswith('data:image/svg'):
                 blocks.append(self._image_block(src, element.get('alt', '')))
 
         # 容器元素（div, section, article 等）- 递归处理子元素
@@ -201,7 +201,7 @@ class NotionArchiver:
                 # 表格行，简化为段落
                 row_text = ' | '.join(td.get_text().strip() for td in element.find_all(['td', 'th']))
                 if row_text.strip():
-                    blocks.append(self._paragraph_block(row_text))
+                    blocks.extend(self._paragraph_block(row_text))
             else:
                 for child in element.children:
                     blocks.extend(self._process_element(child))
@@ -210,7 +210,7 @@ class NotionArchiver:
         else:
             text = element.get_text().strip()
             if text:
-                blocks.append(self._paragraph_block(text))
+                blocks.extend(self._paragraph_block(text))
 
         return blocks
 
@@ -236,9 +236,10 @@ class NotionArchiver:
                             "paragraph": {"rich_text": text_parts}
                         })
                         text_parts = []
-                    # 输出图片块
-                    src = child.get('data-src') or child.get('src')
-                    if src:
+                    # 输出图片块（按优先级：data-original > data-src > src）
+                    src = child.get('data-original') or child.get('data-src') or child.get('src')
+                    # 跳过 SVG 占位符
+                    if src and not src.startswith('data:image/svg'):
                         blocks.append(self._image_block(src, child.get('alt', '')))
                 else:
                     # 其他内联标签（a, strong, em 等）
@@ -334,22 +335,40 @@ class NotionArchiver:
 
     # === 块构建辅助方法 ===
 
-    def _paragraph_block(self, text: str) -> dict:
-        return {
-            "object": "block",
-            "type": "paragraph",
-            "paragraph": {
-                "rich_text": [{"type": "text", "text": {"content": text}}]
-            }
-        }
+    def _chunk_text(self, text: str, max_len: int = 2000) -> list:
+        """
+        将长文本拆分为 ≤ max_len 的块
+        Notion API 限制单个 rich_text content 字段长度 ≤ 2000
+        """
+        if len(text) <= max_len:
+            return [text]
+        chunks = []
+        for i in range(0, len(text), max_len):
+            chunks.append(text[i:i + max_len])
+        return chunks
+
+    def _paragraph_block(self, text: str) -> list:
+        """返回段落块列表（长文本自动拆分为多个段落）"""
+        blocks = []
+        for chunk in self._chunk_text(text):
+            blocks.append({
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [{"type": "text", "text": {"content": chunk}}]
+                }
+            })
+        return blocks
 
     def _heading_block(self, text: str, level: int) -> dict:
         heading_type = f"heading_{level}"
+        # 标题也做截断（Notion 限制 2000 字符）
+        truncated = text[:2000] if len(text) > 2000 else text
         return {
             "object": "block",
             "type": heading_type,
             heading_type: {
-                "rich_text": [{"type": "text", "text": {"content": text}}]
+                "rich_text": [{"type": "text", "text": {"content": truncated}}]
             }
         }
 
@@ -358,7 +377,7 @@ class NotionArchiver:
             "object": "block",
             "type": "bulleted_list_item",
             "bulleted_list_item": {
-                "rich_text": [{"type": "text", "text": {"content": text}}]
+                "rich_text": [{"type": "text", "text": {"content": text[:2000]}}]
             }
         }
 
@@ -367,28 +386,36 @@ class NotionArchiver:
             "object": "block",
             "type": "numbered_list_item",
             "numbered_list_item": {
-                "rich_text": [{"type": "text", "text": {"content": text}}]
+                "rich_text": [{"type": "text", "text": {"content": text[:2000]}}]
             }
         }
 
-    def _quote_block(self, text: str) -> dict:
-        return {
-            "object": "block",
-            "type": "quote",
-            "quote": {
-                "rich_text": [{"type": "text", "text": {"content": text}}]
-            }
-        }
+    def _quote_block(self, text: str) -> list:
+        """返回引用块列表（长文本自动拆分）"""
+        blocks = []
+        for chunk in self._chunk_text(text):
+            blocks.append({
+                "object": "block",
+                "type": "quote",
+                "quote": {
+                    "rich_text": [{"type": "text", "text": {"content": chunk}}]
+                }
+            })
+        return blocks
 
-    def _code_block(self, text: str) -> dict:
-        return {
-            "object": "block",
-            "type": "code",
-            "code": {
-                "rich_text": [{"type": "text", "text": {"content": text}}],
-                "language": "plain text"
-            }
-        }
+    def _code_block(self, text: str) -> list:
+        """返回代码块列表（长代码自动拆分）"""
+        blocks = []
+        for chunk in self._chunk_text(text, max_len=2000):
+            blocks.append({
+                "object": "block",
+                "type": "code",
+                "code": {
+                    "rich_text": [{"type": "text", "text": {"content": chunk}}],
+                    "language": "plain text"
+                }
+            })
+        return blocks
 
     def _image_block(self, url: str, caption: str = "") -> dict:
         block = {
@@ -400,5 +427,5 @@ class NotionArchiver:
             }
         }
         if caption:
-            block["image"]["caption"] = [{"type": "text", "text": {"content": caption}}]
+            block["image"]["caption"] = [{"type": "text", "text": {"content": caption[:2000]}}]
         return block
