@@ -29,6 +29,15 @@ class ImageProcessor:
         """
         url_mapping = {}
 
+        # 平台 Referer 映射（防盗链图片需要设置 Referer）
+        platform_referers = {
+            'douban': 'https://www.douban.com/',
+            'zhihu': 'https://www.zhihu.com/',
+            'wechat': 'https://mp.weixin.qq.com/',
+            'xhs': 'https://www.xiaohongshu.com/',
+        }
+        headers = {'Referer': platform_referers.get(platform, '')}
+
         for idx, img_url in enumerate(image_urls, start=1):
             try:
                 # 解析原始图片URL，获取文件扩展名
@@ -41,8 +50,8 @@ class ImageProcessor:
                 oss_filename = f"article-{idx:03d}{ext}"
                 oss_path = f"articles/{platform}/{article_id}/{oss_filename}"
 
-                # 下载图片内容
-                response = requests.get(img_url, timeout=30)
+                # 下载图片内容（带 Referer 绕过防盗链）
+                response = requests.get(img_url, headers=headers, timeout=30)
                 response.raise_for_status()
 
                 # 上传到OSS
