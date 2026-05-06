@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.2.0 (2026-05-06)
+
+### ✨ 关键词提取优化
+
+- **LLM 优先策略**: 关键词提取优先调用 DashScope LLM 理解文章核心内容
+- **智能降级**: LLM 失败或未配置 `DASHSCOPE_API_KEY` 时自动降级为本地词频分析
+- **标题上下文**: 传递文章标题给 LLM，提升关键词提取准确度
+- **超时重试**: 3 次重试机制（60s → 90s → 120s），兼容 429/5xx 错误
+- **新增配置**: `.env.example` 添加 `DASHSCOPE_API_KEY`/`DASHSCOPE_BASE_URL`/`DASHSCOPE_MODEL` 说明
+
+### 📝 文档更新
+
+- SKILL.md 更新关键词提取描述（纯本地 → LLM 优先 + 降级方案）
+
+---
+
 ## v0.1.1 (2026-05-01)
 
 ### 🐛 Bug 修复

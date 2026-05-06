@@ -71,10 +71,11 @@ def fetch_and_archive_article(url: str, tags: list = None) -> dict:
                 content = content.replace(orig, oss)
             article_data['content'] = content
 
-        # 5. 提取关键词（LLM 分析文章内容）
+        # 5. 提取关键词（LLM 优先，本地词频降级）
         content = article_data.get('content', '')
+        article_title = article_data.get('title', '')
         logger.info("正在提取关键词...")
-        auto_tags = extract_tags(content)
+        auto_tags = extract_tags(content, title=article_title)
         all_tags = list(dict.fromkeys((tags or []) + auto_tags))
         logger.info(f"关键词：{all_tags}")
 

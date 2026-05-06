@@ -23,10 +23,10 @@ metadata:
 # Article Fetcher — OpenClaw Skill
 
 抓取微信公众号、小红书、豆瓣、知乎等平台文章，自动处理图片上传至阿里云 OSS，
-本地词频分析提取关键词，一键存档到 Notion 数据库。
+LLM 智能提取关键词（本地词频降级），一键存档到 Notion 数据库。
 
-**版本**: 0.1.1  
-**发布**: 2026-04-29  
+**版本**: 0.2.0  
+**发布**: 2026-05-06  
 **许可**: MIT  
 **作者**: Ajay Hao
 
@@ -64,7 +64,8 @@ metadata:
 | 豆瓣 | `douban.com` | 内容抓取 | 无（仅 HTTP GET） |
 
 **说明**：
-- **关键词提取已改为纯本地方案**（基于词频统计），不调用任何外部 LLM API
+- **关键词提取采用 LLM 优先策略**：配置 `DASHSCOPE_API_KEY` 后使用 DashScope API 理解文章核心内容并提取关键词
+- **本地降级方案**：未配置 LLM 或调用失败时自动降级为本地词频分析
 - 阿里云 Coding Plan Key（`sk-sp-` 前缀）禁止用于自动化脚本，请配置独立的标准百炼 Key
 
 ### 最小权限建议
@@ -82,7 +83,7 @@ metadata:
 - **智能识别**: 自动识别文章来源平台
 - **内容提取**: 标题、作者、发布时间、正文（HTML）、图片
 - **图床集成**: 阿里云 OSS 自动上传，按 `article-001.jpg` 格式命名
-- **关键词提取**: 基于词频统计提取关键词，无需外部 API
+- **智能关键词**: LLM 优先理解文章核心内容，本地词频分析降级兜底
 - **一键存档**: HTML 内容解析为 Notion 结构化块，保留原始排版
 - **字数统计**: 剔除 HTML 标签后自动统计
 
@@ -97,7 +98,9 @@ Step 2: 内容抓取（fetchers/，注册表模式，易扩展）
   ↓
 Step 3: 图片上传 OSS + 替换 HTML 中的原始链接
   ↓
-Step 4: 本地词频分析提取关键词 → 合并命令行标签
+Step 4: LLM 智能提取关键词 → 合并命令行标签
+  ↓             ↓（LLM 失败/未配置）
+  ↓        本地词频分析降级
   ↓
 Step 5: 字数统计（剔除 HTML 标签）
   ↓
@@ -126,7 +129,7 @@ article-fetcher/
     ├── http_client.py           # HTTP 客户端（带重试）
     ├── logger.py                # 日志配置
     ├── word_counter.py          # 字数统计
-    └── tag_extractor.py         # 关键词提取（纯本地词频分析）
+    └── tag_extractor.py         # 关键词提取（LLM 优先，本地词频降级）
 ```
 
 ## ⚙️ 配置
@@ -143,6 +146,13 @@ NOTION_API_KEY=nop_xx…xxxx
 NOTION_ARTICLE_DATABASE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 # ========== 可选 ==========
+# LLM 关键词分析（DashScope API）
+# 配置后优先使用 LLM 理解文章核心内容并提取关键词
+# 未配置时自动降级为本地词频分析
+# DASHSCOPE_API_KEY=sk-xxx…xxxx
+# DASHSCOPE_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+# DASHSCOPE_MODEL=qwen3.5-plus
+
 DEBUG=false
 # Cookies 文件路径（反爬）
 # WECHAT_COOKIES_FILE=/path/to/wechat_cookies.txt
@@ -273,6 +283,7 @@ python -c "from config import config; print('OSS:', config.aliyun_oss_ak[:6]+'..
 | Notion 推送失败 | API Key 过期或权限不足 | 更新 `NOTION_API_KEY`，确认数据库权限 |
 | 平台识别失败 | URL 格式异常 | 检查 URL 完整性，确认是否为短链 |
 | 文章无内容 | 页面结构变化 | 更新对应 Fetcher 的选择器 |
+| 关键词质量差 | LLM 未配置/失败 | 配置 `DASHSCOPE_API_KEY` 提升质量；或检查本地词频停用词 |
 
 查看详细日志：
 ```bash
