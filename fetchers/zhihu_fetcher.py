@@ -3,6 +3,7 @@
 """
 from bs4 import BeautifulSoup
 from fetchers.base_fetcher import BaseFetcher
+from utils.logger import logger
 import re
 from datetime import datetime
 
@@ -22,7 +23,7 @@ class ZhihuFetcher(BaseFetcher):
                 return self._extract_answer(soup, url, html)
             return self._extract_article(soup, url, html)
         except Exception as e:
-            print(f"抓取知乎内容失败: {e}")
+            logger.error(f"抓取知乎内容失败: {e}")
             return {'title': '', 'author': '', 'pub_date': '', 'content': '', 'images': [], 'original_url': url}
 
     def _extract_article(self, soup, url, html):
@@ -115,7 +116,6 @@ class ZhihuFetcher(BaseFetcher):
                 del tag[k]
 
             # 移除动态生成的 CSS class（css-xxxxxx 格式）
-            import re
             if tag.get('class'):
                 tag['class'] = [
                     c for c in tag['class']

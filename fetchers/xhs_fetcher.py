@@ -3,6 +3,7 @@
 """
 from bs4 import BeautifulSoup
 from fetchers.base_fetcher import BaseFetcher
+from utils.logger import logger
 import json
 from datetime import datetime
 
@@ -24,7 +25,7 @@ class XHSFetcher(BaseFetcher):
             # 降级：从 HTML 元素提取
             return self._build_from_html(soup, url)
         except Exception as e:
-            print(f"抓取小红书文章失败: {e}")
+            logger.error(f"抓取小红书文章失败: {e}")
             return {'title': '', 'author': '', 'pub_date': '', 'content': '', 'images': [], 'original_url': url}
 
     def _extract_json_state(self, soup):
@@ -58,7 +59,10 @@ class XHSFetcher(BaseFetcher):
     def _build_from_json(self, note, url):
         user = note.get('user', {})
         pub_ts = note.get('time')
-        pub_date = datetime.fromtimestamp(pub_ts / 1000).strftime('%Y-%m-%d %H:%M:%S') if pub_ts else datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        if pub_ts and isinstance(pub_ts, (int, float)) and pub_ts > 0:
+            pub_date = datetime.fromtimestamp(pub_ts / 1000).strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            pub_date = ''
 
         images = []
         for img_item in note.get('imageList', []):
@@ -95,7 +99,7 @@ class XHSFetcher(BaseFetcher):
         return {
             'title': title,
             'author': author,
-            'pub_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'pub_date': '',
             'content': content,
             'images': images,
             'original_url': url

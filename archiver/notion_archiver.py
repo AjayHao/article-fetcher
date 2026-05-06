@@ -1,8 +1,8 @@
-import oss2
 from bs4 import BeautifulSoup, NavigableString, Tag
 from notion_client import Client
 from datetime import datetime, timezone, timedelta
 from config import config
+from utils.logger import logger
 
 
 class NotionArchiver:
@@ -13,8 +13,6 @@ class NotionArchiver:
 
     def __init__(self):
         self.notion = Client(auth=config.notion_api_key)
-        auth = oss2.Auth(config.aliyun_oss_ak, config.aliyun_oss_sk)
-        self.bucket = oss2.Bucket(auth, f'https://{config.aliyun_oss_endpoint}', config.aliyun_oss_bucket_id)
 
     def archive_article(self, article_data: dict) -> bool:
         """
@@ -101,7 +99,7 @@ class NotionArchiver:
             return True
 
         except Exception as e:
-            print(f"存档到Notion时发生错误: {str(e)}")
+            logger.error(f"存档到 Notion 失败: {e}")
             return False
 
     def _html_to_blocks(self, html_content: str) -> list:

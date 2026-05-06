@@ -4,15 +4,18 @@
 LLM 不可用或未配置时，降级为本地词频分析
 """
 import re
-import os
 import json
+import requests
+from utils.logger import logger
+from config import config
 
 
 # ============ LLM 关键词提取 ============
 
-DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
-DASHSCOPE_BASE_URL = os.getenv('DASHSCOPE_BASE_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
-DASHSCOPE_MODEL = os.getenv('DASHSCOPE_MODEL', 'qwen3.5-plus')
+# 从 config 读取（若配置不存在则使用默认值）
+DASHSCOPE_API_KEY = getattr(config, 'dashscope_api_key', None)
+DASHSCOPE_BASE_URL = getattr(config, 'dashscope_base_url', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
+DASHSCOPE_MODEL = getattr(config, 'dashscope_model', 'qwen3.5-plus')
 
 # 关键词提取专用 prompt
 TAG_EXTRACT_SYSTEM = (
@@ -138,7 +141,8 @@ def extract_tags_llm(text: str, max_tags: int = 5, title: str = '') -> list:
 
         return filtered
 
-    except Exception:
+    except Exception as e:
+        logger.warning(f"LLM 关键词提取失败，降级为本地词频分析: {e}")
         return []
 
 

@@ -75,7 +75,7 @@ class WechatFetcher(BaseFetcher):
         if ts_match:
             return datetime.fromtimestamp(int(ts_match.group(1))).strftime('%Y-%m-%d %H:%M:%S')
         logger.warning("未找到发布时间")
-        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return ''
 
     def _extract_content(self, soup: BeautifulSoup) -> str:
         div = soup.find('div', id='js_content') or soup.find('div', class_='rich_media_content')

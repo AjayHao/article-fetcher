@@ -12,8 +12,6 @@ def count_words(html_content: str) -> int:
         return 0
     # 去除 HTML 标签
     text = re.sub(r'<[^>]+>', '', html_content)
-    # 去除图片标记
-    text = re.sub(r'!\[.*?\]\(.*?\)', '', text)
     # 去除空白字符
     text = re.sub(r'\s+', '', text)
     return len(text)
