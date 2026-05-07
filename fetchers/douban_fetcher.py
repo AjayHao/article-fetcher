@@ -3,8 +3,8 @@
 """
 from bs4 import BeautifulSoup
 from fetchers.base_fetcher import BaseFetcher
+from utils.logger import logger
 import re
-from datetime import datetime
 
 
 class DoubanFetcher(BaseFetcher):
@@ -25,7 +25,7 @@ class DoubanFetcher(BaseFetcher):
             page_type = self._detect_page_type(url)
             return self._extract(soup, url, page_type)
         except Exception as e:
-            print(f"抓取豆瓣文章失败: {e}")
+            logger.error(f"抓取豆瓣文章失败: {e}")
             return {'title': '', 'author': '', 'pub_date': '', 'content': '', 'images': [], 'original_url': url}
 
     def _detect_page_type(self, url: str) -> str:
@@ -75,8 +75,7 @@ class DoubanFetcher(BaseFetcher):
             # 从文本中提取第一个匹配 YYYY-MM-DD HH:MM:SS 的日期
             date_text = pub_date_tag.get_text().strip()
             pub_date = self._parse_date(date_text)
-        if not pub_date:
-            pub_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # pub_date 缺失时留空（不伪造当前时间）
 
         # 正文：按优先级尝试多个选择器
         content = ''
@@ -140,4 +139,4 @@ class DoubanFetcher(BaseFetcher):
         match = re.search(r'(\d{4}[-/]\d{2}[-/]\d{2})', date_text)
         if match:
             return match.group(1).replace('/', '-') + ' 00:00:00'
-        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return ''  # 缺失时留空（不伪造当前时间）

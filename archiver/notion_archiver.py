@@ -57,11 +57,6 @@ class NotionArchiver:
                 "Link": {
                     "url": article_data.get("link")
                 },
-                "PubDate": {
-                    "date": {
-                        "start": article_data.get("pub_date", datetime.now().isoformat())
-                    }
-                },
                 "Words": {
                     "number": article_data.get("words", 0)
                 },
@@ -71,6 +66,10 @@ class NotionArchiver:
                     }
                 }
             }
+
+            pub_date = article_data.get("pub_date", "")
+            if pub_date:
+                properties["PubDate"] = {"date": {"start": pub_date}}
 
             if article_data.get("tags"):
                 properties["Tags"] = {

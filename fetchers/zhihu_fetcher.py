@@ -136,7 +136,7 @@ class ZhihuFetcher(BaseFetcher):
         match = re.search(r'"created":\s*(\d+)', html) or re.search(r'"updatedTime":\s*(\d+)', html)
         if match:
             return datetime.fromtimestamp(int(match.group(1))).strftime('%Y-%m-%d %H:%M:%S')
-        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return ''  # 缺失时留空（不伪造当前时间）
 
     def _extract_images(self, content_div) -> list:
         """提取图片 URL（知乎每种图有 _r.jpg 和 _720w.jpg 两个变体，全部提取用于替换）"""
