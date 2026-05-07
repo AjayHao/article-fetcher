@@ -13,7 +13,7 @@ class ZhihuFetcher(BaseFetcher):
 
     def fetch_article(self, url: str) -> dict:
         self.headers['Referer'] = 'https://www.zhihu.com/'
-        self._apply_cookies()
+        self._apply_cookies_for_url(url)
 
         try:
             html = self._fetch_html(url, headers=self.headers, timeout=30)

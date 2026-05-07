@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.0.1 (2026-05-07)
+
+### 🔒 安全修复（ClawScan 扫描）
+
+- **Cookie 域隔离**: `base_fetcher.py` 重构 `_load_cookies()` 保留 domain 字段，新增 `_apply_cookies_for_url(url)` 按目标域名过滤，防止登录态泄露到非目标站点
+- **URL 严格校验**: `platform_detector.py` 改用 `urllib.parse.urlparse` + 白名单匹配 hostname，拒绝路径拼接攻击（如 `https://evil.com/mp.weixin.qq.com/...`）
+- **依赖版本锁定**: `requirements.txt` `>=` → `==` 精确版本，降低供应链风险
+
+### 📝 文档
+
+- **安全说明**: SKILL.md 新增「安全与隐私」章节，披露 LLM 数据外发、Cookie 隔离、权限最小化等安全边界
+- **扩展指南**: 更新平台扩展步骤（`ALLOWED_HOSTS` 替换旧正则描述）
+
+---
+
 ## v1.0.0 (2026-05-07)
 
 ### 🎯 正式发布

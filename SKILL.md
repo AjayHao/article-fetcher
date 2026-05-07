@@ -3,10 +3,10 @@ name: article-fetcher
 description: "抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图片，LLM 智能提取关键词，一键存档到 Notion"
 homepage: https://github.com/openclaw/openclaw
 metadata:
-  { "openclaw": { "emoji": "📰", "version": "1.0.0", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT", "NOTION_API_KEY", "NOTION_ARTICLE_DATABASE_ID"] }, "primaryEnv": "NOTION_API_KEY", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client", "label": "Install Python dependencies" }] } }
+  { "openclaw": { "emoji": "📰", "version": "1.0.1", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT", "NOTION_API_KEY", "NOTION_ARTICLE_DATABASE_ID"] }, "primaryEnv": "NOTION_API_KEY", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client", "label": "Install Python dependencies" }] } }
 ---
 
-# Article Fetcher v1.0.0
+# Article Fetcher v1.0.1
 
 抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图床，LLM 智能关键词提取，一键存档到 Notion。
 
@@ -76,8 +76,17 @@ URL → 平台识别 → 内容抓取 → 图片上传 OSS → 关键词提取 (
 - **时间**：统一 `YYYY-MM-DD HH:MM:SS`，缺失时留空（不伪造）
 - **模块**：`main.py` 可作 Python 模块调用：`from main import fetch_and_archive_article`
 
+## 安全与隐私
+
+- **URL 校验**：严格白名单匹配 hostname，拒绝路径拼接攻击
+- **Cookie 隔离**：Netscape Cookies 按域名过滤，仅附加到匹配的请求
+- **LLM 数据外发**：配置 `DASHSCOPE_API_KEY` 时，文章内容会发送至 DashScope API（仅用于关键词提取）
+- **敏感信息**：AK/SK/Key 等仅存储于本地，skill 不会外泄
+- **权限最小化**：OSS Bucket 建议仅授予 PutObject/GetObject，Notion Integration 仅授予目标数据库读写权限
+- **依赖锁定**：requirements.txt 使用精确版本号，避免供应链风险
+
 ## 扩展平台
 
 1. `fetchers/` 下创建 `xxx_fetcher.py`，继承 `BaseFetcher` 实现 `fetch_article()`
-2. `detector/platform_detector.py` 添加 URL 正则
+2. `detector/platform_detector.py` 的 `ALLOWED_HOSTS` 添加平台域名
 3. `main.py` 的 `FETCHER_REGISTRY` 注册

@@ -13,7 +13,7 @@ class WechatFetcher(BaseFetcher):
 
     def fetch_article(self, url: str) -> dict:
         logger.info(f"开始抓取微信公众号文章：{url}")
-        self._apply_cookies()
+        self._apply_cookies_for_url(url)
 
         try:
             html = self._fetch_html(url, headers=self.headers, timeout=30)
