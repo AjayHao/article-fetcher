@@ -23,10 +23,13 @@ class ConfigManager:
         self.notion_api_key = os.getenv('NOTION_API_KEY')
         self.notion_article_database_id = os.getenv('NOTION_ARTICLE_DATABASE_ID')
 
-        # 可选：LLM 关键词提取（DashScope API）
-        self.dashscope_api_key = os.getenv('DASHSCOPE_API_KEY')
-        self.dashscope_base_url = os.getenv('DASHSCOPE_BASE_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
-        self.dashscope_model = os.getenv('DASHSCOPE_MODEL', 'qwen3.5-plus')
+        # LLM 关键词提取（OpenAI 兼容接口，复用 video-summarizer 配置）
+        self.llm_api_key = os.getenv('LLM_API_KEY', '').strip()
+        self.llm_base_url = os.getenv('LLM_BASE_URL', '').strip()
+        self.llm_model = os.getenv('LLM_MODEL', '').strip()
+
+        # LLM 可用性标记
+        self.llm_available = bool(self.llm_api_key and self.llm_base_url and self.llm_model)
 
         # 可选：Cookies（默认路径 ~/.cookies/<platform>_cookies.txt）
         self.wechat_cookies = os.getenv('WECHAT_COOKIES_FILE', os.path.expanduser('~/.cookies/wechat_cookies.txt'))
