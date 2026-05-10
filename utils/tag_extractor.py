@@ -1,21 +1,16 @@
 """
 关键词提取模块
-优先使用 LLM 理解文章核心内容并提取关键词
+优先使用 LLM（OpenAI 兼容接口）理解文章核心内容并提取关键词
 LLM 不可用或未配置时，降级为本地词频分析
+
+版本：v1.0.2
 """
 import re
 import json
+import time
 import requests
 from utils.logger import logger
 from config import config
-
-
-# ============ LLM 关键词提取 ============
-
-# 从 config 读取（若配置不存在则使用默认值）
-DASHSCOPE_API_KEY = getattr(config, 'dashscope_api_key', None)
-DASHSCOPE_BASE_URL = getattr(config, 'dashscope_base_url', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
-DASHSCOPE_MODEL = getattr(config, 'dashscope_model', 'qwen3.5-plus')
 
 # 关键词提取专用 prompt
 TAG_EXTRACT_SYSTEM = (
@@ -42,6 +37,57 @@ TAG_EXTRACT_PROMPT = (
     '请开始分析：'
 )
 
+# 可重试的 HTTP 状态码
+RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+
+
+def _llm_chat(system_prompt: str, user_prompt: str) -> str | None:
+    """
+    调用 LLM (OpenAI 兼容接口) 进行单轮对话。
+
+    配置来源：LLM_API_KEY + LLM_BASE_URL + LLM_MODEL（与 video-summarizer 共用 .env）
+
+    Returns:
+        AI 响应文本，失败返回 None。
+    """
+    endpoint = f"{config.llm_base_url.rstrip('/')}/chat/completions"
+    headers = {
+        'Authorization': f'Bearer {config.llm_api_key}',
+        'Content-Type': 'application/json',
+    }
+    body = {
+        'model': config.llm_model,
+        'messages': [
+            {'role': 'system', 'content': system_prompt},
+            {'role': 'user', 'content': user_prompt},
+        ],
+        'stream': False,
+    }
+
+    for attempt in range(3):
+        try:
+            timeout = [60, 90, 120][attempt]
+            response = requests.post(endpoint, headers=headers, json=body, timeout=timeout)
+
+            if response.status_code == 200:
+                return response.json()['choices'][0]['message']['content']
+
+            if response.status_code in RETRYABLE_STATUS:
+                wait_s = 2 ** attempt
+                logger.warning(f"LLM 响应 {response.status_code}，{wait_s}s 后重试...")
+                time.sleep(wait_s)
+                continue
+
+            logger.warning(f"LLM 返回不可重试状态码：{response.status_code}")
+            return None
+
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            logger.warning(f"LLM 请求超时/连接失败 (尝试 {attempt + 1}/3)：{e}")
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+
+    return None
+
 
 def extract_tags_llm(text: str, max_tags: int = 5, title: str = '') -> list:
     """
@@ -55,12 +101,10 @@ def extract_tags_llm(text: str, max_tags: int = 5, title: str = '') -> list:
     Returns:
         list: 关键词列表，失败时返回空列表
     """
-    if not DASHSCOPE_API_KEY:
+    if not config.llm_available:
         return []
 
     try:
-        import requests
-
         # 限制输入长度（LLM context 限制）
         MAX_CHARS = 12000
         content = text[:MAX_CHARS]
@@ -72,48 +116,12 @@ def extract_tags_llm(text: str, max_tags: int = 5, title: str = '') -> list:
         if title:
             user_prompt = f'## 文章标题\n\n{title}\n\n' + user_prompt
 
-        headers = {
-            'Authorization': f'Bearer {DASHSCOPE_API_KEY}',
-            'Content-Type': 'application/json'
-        }
+        logger.info(f"调用 LLM 提取关键词 ({config.llm_model})...")
+        ai_response = _llm_chat(TAG_EXTRACT_SYSTEM, user_prompt)
 
-        data = {
-            'model': DASHSCOPE_MODEL,
-            'messages': [
-                {'role': 'system', 'content': TAG_EXTRACT_SYSTEM},
-                {'role': 'user', 'content': user_prompt}
-            ],
-            'stream': False
-        }
-
-        # 重试机制：超时 + 可重试 HTTP 错误（超时 60s → 90s → 120s）
-        RETRYABLE_STATUS = {429, 500, 502, 503, 504}
-        response = None
-        for attempt in range(3):
-            try:
-                timeout = [60, 90, 120][attempt]
-                response = requests.post(
-                    f'{DASHSCOPE_BASE_URL}/chat/completions',
-                    headers=headers,
-                    json=data,
-                    timeout=timeout
-                )
-                if response.status_code == 200:
-                    break
-                if response.status_code in RETRYABLE_STATUS:
-                    if attempt < 2:
-                        continue
-                else:
-                    return []
-            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
-                if attempt >= 2:
-                    return []
-                continue
-
-        if response is None or response.status_code != 200:
+        if not ai_response:
+            logger.warning("LLM 返回空，降级为本地词频分析")
             return []
-
-        ai_response = response.json()['choices'][0]['message']['content']
 
         # 提取 JSON
         json_match = re.search(r'```json\s*(.*?)\s*```', ai_response, re.DOTALL)
@@ -186,7 +194,7 @@ def extract_tags_local(text: str, max_tags: int = 5) -> list:
     """
     # 提取中文词汇（2-8 字）
     chinese_words = re.findall(r'[\u4e00-\u9fa5]{2,8}', text)
-    # 英文技术术语：PascalCase（如 'AutoCompact'）或全大写（如 'MCP'）
+    # 英文技术术语：PascalCase 或全大写
     english_words = re.findall(r'\b([A-Z][a-z]+(?:[A-Z][a-z]+)*|[A-Z]{2,10})\b', text)
 
     all_words = chinese_words + [w.lower() for w in english_words]
@@ -210,7 +218,7 @@ def extract_tags(html_content: str, max_tags: int = 5, title: str = '') -> list:
     提取文章关键词（LLM 优先，本地词频降级）
 
     策略：
-    1. 尝试 LLM 分析（需配置 DASHSCOPE_API_KEY）
+    1. 尝试 LLM 分析（需配置 LLM_API_KEY + LLM_BASE_URL + LLM_MODEL）
     2. LLM 失败或未配置 → 降级为本地词频分析
 
     Args:
@@ -229,10 +237,12 @@ def extract_tags(html_content: str, max_tags: int = 5, title: str = '') -> list:
         return []
 
     # 优先尝试 LLM 提取
-    if DASHSCOPE_API_KEY:
+    if config.llm_available:
+        logger.info("LLM 已配置，尝试智能关键词提取...")
         llm_tags = extract_tags_llm(text, max_tags, title)
         if llm_tags:
             return llm_tags
+        logger.info("LLM 提取失败，降级为本地词频")
 
     # 降级为本地词频分析
     return extract_tags_local(text, max_tags)

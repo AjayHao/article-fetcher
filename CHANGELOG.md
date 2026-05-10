@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0.2 (2026-05-10)
+
+### 🏗️ LLM 多平台抽象
+
+- **统一 LLM 配置**：`config.py` 移除 DashScope 专属字段（`dashscope_api_key`/`dashscope_base_url`/`dashscope_model`），改为 `LLM_API_KEY` + `LLM_BASE_URL` + `LLM_MODEL` 通用配置
+- **复用 video-summarizer 配置**：LLM 三个环境变量与 video-summarizer 共享 `.env`，无需重复设置
+- **重构 `tag_extractor.py`**：`extract_tags_llm()` 改为 OpenAI 兼容接口，支持 DeepSeek / DashScope / OpenAI / Groq 等任意平台
+- **LLM 可用性标记**：config 新增 `llm_available` 属性，一次判断即可决定是否启用 LLM
+- **升级日志**：LLM 调用增加模型名称打印（如 `deepseek-v4-pro`），便于排错
+
+---
+
 ## v1.0.1 (2026-05-07)
 
 ### 🔒 安全修复（ClawScan 扫描）
