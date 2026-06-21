@@ -1,6 +1,24 @@
 # Changelog
 
-## v1.0.2 (2026-05-10)
+## v1.1.0 (2026-06-22)
+
+### 🆕 Obsidian 本地存档
+
+- **新增 `obsidian_archiver.py`**：HTML → Markdown 转换（`markdownify`），YAML Frontmatter，存入 `1-输入-收件箱/文章收藏/`
+- **4 场景存档调度**：Obsidian 优先（默认）/ Notion 可选 / 双写 / 仅预览
+- **`config.py` 重构**：Notion 移出必需校验，新增 `obsidian_available` / `notion_available` / `archive_available` 属性
+- **文件命名规范**：`{YYYY-MM-DD}_{platform}_{title}.md`，标题自动清理非法字符
+
+### 🐛 修复
+
+- **OSS URL 双协议头防御**：`image_processor.py` endpoint 前置 `lstrip` 处理
+- **小红书 JSON 提取**：`xhs_fetcher.py` 改用 `html.unescape()` 防 BS4 转义破坏 JSON
+- **HTTP Session 复用**：`http_client.py` 改为模块级单例 + 连接池，消除重复 TCP 握手
+
+### 📝 文档
+
+- **SKILL.md / README.md 全面重写**：4 场景存档表、Obsidian Frontmatter 规范、Notion 降级为可选
+- 路径引用从 OpenClaw 适配为 Hermes 环境
 
 ### 🏗️ LLM 多平台抽象
 

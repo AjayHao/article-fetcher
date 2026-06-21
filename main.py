@@ -1,6 +1,6 @@
 """
 Article Fetcher — 主程序入口
-抓取文章并存档到 Notion
+抓取文章并存档到 Obsidian / Notion
 """
 from detector.platform_detector import detect_platform
 from fetchers.wechat_fetcher import WechatFetcher
@@ -9,6 +9,7 @@ from fetchers.douban_fetcher import DoubanFetcher
 from fetchers.zhihu_fetcher import ZhihuFetcher
 from processors.image_processor import ImageProcessor
 from archiver.notion_archiver import NotionArchiver
+from archiver.obsidian_archiver import ObsidianArchiver
 from utils.word_counter import count_words
 from utils.tag_extractor import extract_tags
 from utils.logger import logger
@@ -29,7 +30,7 @@ FETCHER_REGISTRY = {
 
 
 def fetch_and_archive_article(url: str, tags: list = None) -> dict:
-    """抓取文章并存档到 Notion"""
+    """抓取文章并存档到 Obsidian / Notion（4 场景动态调度）"""
     logger.info(f"开始处理文章：{url}")
 
     try:
@@ -83,10 +84,8 @@ def fetch_and_archive_article(url: str, tags: list = None) -> dict:
         word_count = count_words(content)
         logger.info(f"字数统计：{word_count} 字")
 
-        # 7. 存档到 Notion
-        logger.info("正在存档到 Notion...")
-        archiver = NotionArchiver()
-        success = archiver.archive_article({
+        # 7. 存档（4 场景动态调度：Obsidian / Notion / 双写 / 仅预览）
+        archive_payload = {
             'title': article_data.get('title', ''),
             'source': platform,
             'author': article_data.get('author', ''),
@@ -95,20 +94,54 @@ def fetch_and_archive_article(url: str, tags: list = None) -> dict:
             'pub_date': article_data.get('pub_date', ''),
             'content': content,
             'words': word_count,
-        })
+        }
 
-        if success:
-            logger.info("文章存档成功")
+        archived_to = []
+
+        # Obsidian 存档（推荐默认）
+        if config.obsidian_available:
+            logger.info("正在存档到 Obsidian...")
+            obsidian = ObsidianArchiver()
+            if obsidian.archive_article(archive_payload):
+                archived_to.append('Obsidian')
+
+        # Notion 存档（可选）
+        if config.notion_available:
+            logger.info("正在存档到 Notion...")
+            notion = NotionArchiver()
+            if notion.archive_article(archive_payload):
+                archived_to.append('Notion')
+
+        # 8. 返回结果
+        if archived_to:
+            logger.info(f"文章存档成功 → {', '.join(archived_to)}")
             return {
                 'success': True,
-                'message': '文章已成功抓取并存档到 Notion',
+                'message': f"文章已成功抓取并存档到 {', '.join(archived_to)}",
                 'article_id': article_id,
                 'platform': platform,
                 'title': article_data.get('title', ''),
                 'tags': all_tags,
                 'word_count': word_count,
+                'archived_to': archived_to,
             }
-        return _error('文章抓取成功但存档到 Notion 失败', 'ARCHIVE_FAILED', article_data)
+
+        if config.archive_available:
+            # 配置了存档但均失败
+            return _error('文章抓取成功但所有存档目标均失败', 'ARCHIVE_FAILED', article_data)
+
+        # 无存档配置 → 预览模式
+        logger.info("未配置存档目标，仅终端输出")
+        return {
+            'success': True,
+            'message': '文章已成功抓取（预览模式，未配置存档目标）',
+            'article_id': article_id,
+            'platform': platform,
+            'title': article_data.get('title', ''),
+            'tags': all_tags,
+            'word_count': word_count,
+            'archived_to': [],
+        }
 
     except Exception as e:
         logger.exception(f"处理过程中发生异常：{e}")
@@ -149,6 +182,11 @@ def main():
         print(f"🏷️ 平台：{result['platform']}")
         print(f"🏷️ 关键词：{', '.join(result.get('tags', []))}")
         print(f"🔢 字数：{result['word_count']}")
+        archived = result.get('archived_to', [])
+        if archived:
+            print(f"📁 存档目标：{', '.join(archived)}")
+        elif not config.archive_available:
+            print("💡 提示：配置 OBSIDIAN_VAULT_PATH 或 NOTION_API_KEY 启用存档")
         logger.info("任务完成")
     else:
         print(f"\n❌ {result['message']}")

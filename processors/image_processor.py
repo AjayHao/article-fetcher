@@ -58,7 +58,9 @@ class ImageProcessor:
                 result = self.bucket.put_object(oss_path, response.content)
 
                 if result.status == 200:
-                    oss_url = f"https://{config.aliyun_oss_bucket_id}.{config.aliyun_oss_endpoint}/{oss_path}"
+                    # 清理 endpoint 中可能已有的协议前缀（避免双协议头）
+                    endpoint = config.aliyun_oss_endpoint.lstrip('https://').lstrip('http://')
+                    oss_url = f"https://{config.aliyun_oss_bucket_id}.{endpoint}/{oss_path}"
                     url_mapping[img_url] = oss_url
                     logger.debug(f"图片上传成功 [{idx}/{len(image_urls)}]: {oss_filename}")
                 else:
