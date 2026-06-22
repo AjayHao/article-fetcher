@@ -14,6 +14,7 @@ from utils.word_counter import count_words
 from utils.tag_extractor import extract_tags
 from utils.logger import logger
 from config import config
+from bs4 import BeautifulSoup
 import uuid
 import sys
 
@@ -72,12 +73,25 @@ def fetch_and_archive_article(url: str, tags: list = None) -> dict:
                 content = content.replace(orig, oss)
             article_data['content'] = content
 
+            # 修复微信等平台 data-src 懒加载：将 data-src 复制到 src
+            _content_soup = BeautifulSoup(content, 'html.parser')
+            _fixed = False
+            for img in _content_soup.find_all('img'):
+                if not img.get('src') and img.get('data-src'):
+                    img['src'] = img['data-src']
+                    _fixed = True
+            if _fixed:
+                article_data['content'] = str(_content_soup)
+                logger.debug(f"修复 {_fixed} 处 data-src → src")
+
         # 5. 提取关键词（LLM 优先，本地词频降级）
         content = article_data.get('content', '')
         article_title = article_data.get('title', '')
         logger.info("正在提取关键词...")
         auto_tags = extract_tags(content, title=article_title)
-        all_tags = list(dict.fromkeys((tags or []) + auto_tags))
+        # 手动标签也清洗为 Obsidian 兼容格式（空格→`-`）
+        manual_tags = [t.strip().replace(' ', '-').lstrip('#') for t in (tags or []) if t.strip()]
+        all_tags = list(dict.fromkeys(manual_tags + auto_tags))
         logger.info(f"关键词：{all_tags}")
 
         # 6. 字数统计（剔除 HTML 标签后）
