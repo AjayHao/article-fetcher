@@ -3,7 +3,7 @@ name: article-fetcher
 description: "抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图片，LLM 智能提取关键词，一键存档到 Obsidian 本地知识库（可选 Notion）"
 homepage: https://github.com/ajayhao/article-fetcher
 metadata:
-  { "hermes": { "emoji": "📰", "version": "1.1.0", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify", "label": "Install Python dependencies" }] } }
+  { "hermes": { "emoji": "📰", "version": "1.1.0", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }] } }
 ---
 
 # Article Fetcher v1.1.0
