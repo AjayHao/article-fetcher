@@ -64,6 +64,13 @@ article-fetcher/
 
 ### 环境变量
 
+skill 读取 `$AGENT_HOME/.env`（通用，兼容 Hermes / OpenClaw 等任意 agent），回退 `$HERMES_HOME/.env`，最终回退当前目录 `.env`。
+
+```bash
+# 当前 agent 为 Hermes，设置一次即可：
+export AGENT_HOME=$HERMES_HOME
+```
+
 ```bash
 # ========== 必需：OSS 图床 ==========
 ALIYUN_OSS_AK=your_access_key_id

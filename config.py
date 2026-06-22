@@ -4,10 +4,10 @@
 import os
 from dotenv import load_dotenv
 
-# 优先加载 $HERMES_HOME/.env，回退当前目录
-_hermes_home = os.getenv('HERMES_HOME', '')
-if _hermes_home:
-    load_dotenv(os.path.join(_hermes_home, '.env'))
+# .env 加载策略：$AGENT_HOME > $HERMES_HOME > 当前目录
+_agent_home = os.getenv('AGENT_HOME', os.getenv('HERMES_HOME', ''))
+if _agent_home:
+    load_dotenv(os.path.join(_agent_home, '.env'))
 else:
     load_dotenv()
 

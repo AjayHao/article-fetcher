@@ -29,7 +29,16 @@ metadata:
 pip install -r requirements.txt
 ```
 
-### 2. 配置环境变量（`$HERMES_HOME/.env` 或系统环境变量）
+### 2. 配置环境变量
+
+skill 通过 `$AGENT_HOME/.env` 加载配置（自动兼容 Hermes / OpenClaw 等 agent）。设置方式：
+
+```bash
+# 当前 agent 为 Hermes，只需设置一次：
+export AGENT_HOME=$HERMES_HOME
+```
+
+环境变量清单（写入 `$AGENT_HOME/.env` 或系统环境变量）：
 
 ```bash
 # ========== 必需：OSS 图床 ==========
