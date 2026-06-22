@@ -4,7 +4,12 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# 优先加载 $HERMES_HOME/.env，回退当前目录
+_hermes_home = os.getenv('HERMES_HOME', '')
+if _hermes_home:
+    load_dotenv(os.path.join(_hermes_home, '.env'))
+else:
+    load_dotenv()
 
 
 class ConfigManager:
