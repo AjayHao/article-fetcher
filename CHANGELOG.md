@@ -5,20 +5,32 @@
 ### 🆕 Obsidian 本地存档
 
 - **新增 `obsidian_archiver.py`**：HTML → Markdown 转换（`markdownify`），YAML Frontmatter，存入 `1-输入-收件箱/文章收藏/`
-- **4 场景存档调度**：Obsidian 优先（默认）/ Notion 可选 / 双写 / 仅预览
+- **4 场景存档调度**：Obsidian 优先 / Notion 可选 / 双写 / 仅预览
 - **`config.py` 重构**：Notion 移出必需校验，新增 `obsidian_available` / `notion_available` / `archive_available` 属性
-- **文件命名规范**：`{YYYY-MM-DD}_{platform}_{title}.md`，标题自动清理非法字符
+- **文件名简化**：仅保留标题，去除日期前缀
 
 ### 🐛 修复
 
 - **OSS URL 双协议头防御**：`image_processor.py` endpoint 前置 `lstrip` 处理
-- **小红书 JSON 提取**：`xhs_fetcher.py` 改用 `html.unescape()` 防 BS4 转义破坏 JSON
-- **HTTP Session 复用**：`http_client.py` 改为模块级单例 + 连接池，消除重复 TCP 握手
+- **小红书 JSON 提取**：`xhs_fetcher.py` 改用 `html.unescape()` + `get_text()` 防 BS4 转义破坏 JSON
+- **HTTP Session 复用**：`http_client.py` 改为模块级单例 + 连接池
+- **微信图片空白**：`main.py` 新增 `data-src` → `src` 修复，解决懒加载图片在 Markdown 中丢失
+- **`__init__.py` 恢复**：5 个子包补回 `__init__.py`，解决包导入失败
+
+### 🔧 优化
+
+- **`.env` 加载策略**：`$AGENT_HOME` > `$HERMES_HOME` > 当前目录，agent 无关通用方案
+- **标签 Obsidian 兼容**：`tag_extractor.py` LLM prompt 约束 + 统一清洗空格→`-`
+- **跨平台路径示例**：文档中 `OBSIDIAN_VAULT_PATH` 展示 Windows/macOS/Linux 三平台
 
 ### 📝 文档
 
 - **SKILL.md / README.md 全面重写**：4 场景存档表、Obsidian Frontmatter 规范、Notion 降级为可选
-- 路径引用从 OpenClaw 适配为 Hermes 环境
+- `openclaw` metadata → `hermes`，路径 `~/.hermes` → `$AGENT_HOME`
+
+---
+
+## v1.0.2 (2026-05-10)
 
 ### 🏗️ LLM 多平台抽象
 
