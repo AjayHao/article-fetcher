@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.2.0 (2026-07-05)
+
+### 🆕 知乎 403 三级回退
+
+- **Playwright 浏览器回退**：`zhihu_fetcher.py` 新增 `_fetch_with_playwright()`，HTTP 403 时自动启动 headless Chromium 抓取
+- **Cookies 注入**：Netscape Cookies 自动注入到 Playwright 浏览器上下文
+- **三级策略**：HTTP (Cookies) → Playwright → 失败放弃（不生成垃圾文件）
+- **`_parse()` 提取**：HTTP 和 Playwright 两条路径复用同一解析逻辑
+
+### 📝 文档
+
+- SKILL.md / README.md 新增知乎 403 回退策略说明
+- metadata 新增 `playwright install chromium` 安装步骤
+
+---
+
 ## v1.1.0 (2026-06-22)
 
 ### 🆕 Obsidian 本地存档

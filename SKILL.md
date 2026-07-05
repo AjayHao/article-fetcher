@@ -3,10 +3,10 @@ name: article-fetcher
 description: "抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图片，LLM 智能提取关键词，一键存档到 Obsidian 本地知识库（可选 Notion）"
 homepage: https://github.com/AjayHao/article-fetcher
 metadata:
-  { "hermes": { "emoji": "📰", "version": "1.1.0", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }] } }
+  { "hermes": { "emoji": "📰", "version": "1.2.0", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }, { "id": "playwright", "kind": "shell", "command": "playwright install chromium", "label": "Install Playwright Chromium browser" }] } }
 ---
 
-# Article Fetcher v1.1.0
+# Article Fetcher v1.2.0
 
 抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图床，LLM 智能关键词提取，默认存档到 Obsidian 本地知识库（可选 Notion 双写）。
 
@@ -142,6 +142,8 @@ article_id: "uuid"
 ## 关键说明
 
 - **Cookies**：知乎/微信反爬需配置（Netscape 格式），小红书/豆瓣无需登录
+- **知乎 403 三级回退**：HTTP (Cookies) → Playwright 浏览器 → 失败放弃（不生成垃圾文件）
+- **Playwright**：安装 `pip install playwright && playwright install chromium` 后自动生效，未安装时跳过浏览器回退
 - **关键词**：LLM 优先（OpenAI 兼容接口），未配置或失败自动降级本地词频
 - **图片**：上传失败不阻断，成功多少记录多少
 - **时间**：统一 `YYYY-MM-DD HH:MM:SS`，缺失时留空（不伪造）

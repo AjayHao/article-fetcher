@@ -3,7 +3,7 @@
 抓取微信公众号、小红书、豆瓣、知乎等平台文章，自动处理图片上传至阿里云 OSS，
 LLM 智能提取关键词（本地词频降级），默认存档到 Obsidian 本地知识库（可选 Notion 双写）。
 
-**版本**: 1.1.0 | **许可**: MIT | **作者**: Ajay Hao
+**版本**: 1.2.0 | **许可**: MIT | **作者**: Ajay Hao
 
 ---
 
@@ -155,6 +155,8 @@ else:
 
 知乎和部分微信公众号需要登录态才能抓取完整内容，否则返回 403。
 
+**知乎三级回退策略**：Cookies HTTP 请求 → Playwright headless 浏览器 → 失败放弃。
+
 **获取步骤**：
 1. 浏览器登录对应平台
 2. 安装 Cookie-Editor 插件
@@ -185,7 +187,7 @@ else:
 
 | 问题 | 原因 | 解决方案 |
 |------|------|----------|
-| 知乎 403 | Cookies 未配置或过期 | 更新 `~/.cookies/zhihu_cookies.txt` |
+| 知乎 403 | Cookies 未配置或过期 | 更新 Cookies 或安装 Playwright 回退 |
 | 微信公众号 403 | 反爬拦截 | 配置 `~/.cookies/wechat_cookies.txt` |
 | 图片上传失败 | OSS 配置错误 | 检查 AK/SK/Bucket/Endpoint |
 | Obsidian 写入失败 | 路径不存在或权限不足 | 检查 `OBSIDIAN_VAULT_PATH` |
