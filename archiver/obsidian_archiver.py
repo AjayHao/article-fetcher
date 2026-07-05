@@ -6,11 +6,7 @@ import os
 import re
 import yaml
 from datetime import datetime, timezone, timedelta
-from config import config
 from utils.logger import logger
-
-# Obsidian Vault 中的存档子路径
-ARCHIVE_SUBDIR = '1-输入-收件箱/文章收藏'
 
 # 文件名非法字符
 _FILENAME_ILLEGAL = re.compile(r'[\\/:*?"<>|]')
@@ -19,9 +15,12 @@ _FILENAME_ILLEGAL = re.compile(r'[\\/:*?"<>|]')
 class ObsidianArchiver:
     """Obsidian 本地 Markdown 存档器"""
 
-    def __init__(self):
-        vault = config.obsidian_vault_path
-        self.archive_dir = os.path.join(vault, ARCHIVE_SUBDIR)
+    def __init__(self, vault_path: str = None):
+        if vault_path is None:
+            from config import config
+            vault_path = config.obsidian_vault_path
+        self.vault_path = vault_path
+        self.article_dir = os.path.join(vault_path, '1-收件箱')
 
     def archive_article(self, article_data: dict) -> bool:
         """
@@ -42,14 +41,14 @@ class ObsidianArchiver:
             bool: 存档是否成功
         """
         try:
-            os.makedirs(self.archive_dir, exist_ok=True)
+            os.makedirs(self.article_dir, exist_ok=True)
 
             title = article_data.get('title', '未知标题')
             platform = article_data.get('source', 'unknown')
 
             # 构建文件名
             filename = self._build_filename(title, platform)
-            filepath = os.path.join(self.archive_dir, filename)
+            filepath = os.path.join(self.article_dir, filename)
 
             # 构建内容
             md_content = self._build_markdown(article_data)

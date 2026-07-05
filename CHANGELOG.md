@@ -8,6 +8,13 @@
 - **Cookies 注入**：Netscape Cookies 自动注入到 Playwright 浏览器上下文
 - **二级策略**：HTTP (Cookies) → Playwright → 失败放弃（不生成垃圾文件）
 - **`_parse()` 提取**：HTTP 和 Playwright 两条路径复用同一解析逻辑
+- **Playwright 渲染等待**：`page.goto()` 后新增 `wait_for_timeout(3000)`，解决页面未渲染完就取内容报错
+- **Pin 类型支持**：新增 `_extract_pin()` 方法，支持知乎想法（`/pin/`）解析，含图片懒加载修复
+
+### 🐛 修复
+
+- **ObsidianArchiver 无参构造**：`__init__` 改为可选 `vault_path` 参数，兼容各种调用场景
+- **图片懒加载**：_extract_pin 中将 `data-original`/`data-actualsrc` 回填到 `src`，避免 OSS 替换时失配
 
 ### 📝 文档
 

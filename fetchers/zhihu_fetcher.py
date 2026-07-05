@@ -84,6 +84,7 @@ class ZhihuFetcher(BaseFetcher):
             page = context.new_page()
             try:
                 page.goto(url, wait_until='networkidle', timeout=30000)
+                page.wait_for_timeout(3000)  # 等待 JS 渲染完成
                 html = page.content()
                 logger.info("Playwright 抓取成功")
                 return html
@@ -97,10 +98,53 @@ class ZhihuFetcher(BaseFetcher):
         soup = BeautifulSoup(html, 'html.parser')
         if 'answer' in url:
             return self._extract_answer(soup, url, html)
+        if '/pin/' in url:
+            return self._extract_pin(soup, url, html)
         return self._extract_article(soup, url, html)
 
     def _empty_result(self, url: str) -> dict:
         return {'title': '', 'author': '', 'pub_date': '', 'content': '', 'images': [], 'original_url': url}
+
+    def _extract_pin(self, soup, url, html):
+        """知乎想法（Pin）"""
+        # 标题：从 meta description 取
+        meta_desc = soup.find('meta', attrs={'name': 'description'})
+        if meta_desc and meta_desc.get('content'):
+            desc = meta_desc['content']
+            title = desc.split('|')[0].strip() if '|' in desc else desc[:50]
+        else:
+            title = '未知标题'
+
+        # 作者
+        author_meta = soup.find('meta', itemprop='author')
+        author = author_meta['content'] if author_meta and author_meta.get('content') else '未知作者'
+
+        pub_date = self._extract_date(html)
+
+        # 正文：优先 RichContent/RichText
+        content_div = soup.find('div', class_='RichContent') or soup.find('div', class_='RichText')
+        if content_div:
+            # 图片懒加载修复：data-original/data-actualsrc → src
+            for img in content_div.find_all('img'):
+                real = img.get('data-original') or img.get('data-actualsrc')
+                if real and not real.startswith('data:'):
+                    img['src'] = real
+            images = self._extract_images(content_div)
+            content = str(self._clean_zhihu_html(content_div))
+        else:
+            # fallback：取 body 可见文本
+            for tag in soup.find_all(['header', 'nav', 'footer', 'script', 'style']):
+                tag.decompose()
+            body = soup.find('body')
+            text = body.get_text(separator='\n', strip=True) if body else ''
+            lines = [l for l in text.split('\n') if len(l) > 10 and '知乎' not in l][:50]
+            content = '<p>' + '</p><p>'.join(lines) + '</p>'
+            images = self._extract_images(soup)
+
+        return {
+            'title': title, 'author': author, 'pub_date': pub_date,
+            'content': content, 'images': images, 'original_url': url,
+        }
 
     def _extract_article(self, soup, url, html):
         """专栏文章"""
