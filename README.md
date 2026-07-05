@@ -155,7 +155,7 @@ else:
 
 知乎和部分微信公众号需要登录态才能抓取完整内容，否则返回 403。
 
-**知乎三级回退策略**：Cookies HTTP 请求 → Playwright headless 浏览器 → 失败放弃。
+**知乎二级回退策略**：Cookies HTTP 请求 → Playwright headless 浏览器 → 失败放弃。
 
 **获取步骤**：
 1. 浏览器登录对应平台

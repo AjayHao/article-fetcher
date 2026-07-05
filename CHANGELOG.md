@@ -2,11 +2,11 @@
 
 ## v1.2.0 (2026-07-05)
 
-### 🆕 知乎 403 三级回退
+### 🆕 知乎 403 二级回退
 
 - **Playwright 浏览器回退**：`zhihu_fetcher.py` 新增 `_fetch_with_playwright()`，HTTP 403 时自动启动 headless Chromium 抓取
 - **Cookies 注入**：Netscape Cookies 自动注入到 Playwright 浏览器上下文
-- **三级策略**：HTTP (Cookies) → Playwright → 失败放弃（不生成垃圾文件）
+- **二级策略**：HTTP (Cookies) → Playwright → 失败放弃（不生成垃圾文件）
 - **`_parse()` 提取**：HTTP 和 Playwright 两条路径复用同一解析逻辑
 
 ### 📝 文档

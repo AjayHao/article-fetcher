@@ -137,3 +137,5 @@ logs/
 *.log
 .env.local
 tests/fixtures/
+.claude/
+.hermes-tmp*/

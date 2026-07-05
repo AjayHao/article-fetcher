@@ -11,7 +11,7 @@ from datetime import datetime
 
 
 class ZhihuFetcher(BaseFetcher):
-    """知乎文章抓取器（三级回退）"""
+    """知乎文章抓取器（二级回退）"""
 
     def fetch_article(self, url: str) -> dict:
         """抓取文章：HTTP → Playwright → 失败"""

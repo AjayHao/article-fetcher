@@ -142,7 +142,7 @@ article_id: "uuid"
 ## 关键说明
 
 - **Cookies**：知乎/微信反爬需配置（Netscape 格式），小红书/豆瓣无需登录
-- **知乎 403 三级回退**：HTTP (Cookies) → Playwright 浏览器 → 失败放弃（不生成垃圾文件）
+- **知乎 403 二级回退**：HTTP (Cookies) → Playwright 浏览器 → 失败放弃
 - **Playwright**：安装 `pip install playwright && playwright install chromium` 后自动生效，未安装时跳过浏览器回退
 - **关键词**：LLM 优先（OpenAI 兼容接口），未配置或失败自动降级本地词频
 - **图片**：上传失败不阻断，成功多少记录多少
