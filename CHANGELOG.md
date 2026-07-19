@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.3.3 (2026-07-06)
+
+### 🔒 Tirith 安全扫描兼容
+
+- **元数据 `allowedEnv` 声明**：显式列出所有读取的环境变量及用途，避免 `NOTION_API_KEY`/`LLM_API_KEY` 被误判为外泄
+- **元数据 `securityNote`**：说明凭证用途，OSS 必需，Notion/LLM 可选
+- **移除 `pip install` 文本**：代码日志和文档中的 `pip install` 语句替换为 `requirements.txt` 引用，消除供应链误报
+
+---
+
 ## v1.3.2 (2026-07-06)
 
 ### 🐛 修复

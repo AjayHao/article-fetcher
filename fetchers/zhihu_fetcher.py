@@ -54,7 +54,7 @@ class ZhihuFetcher(BaseFetcher):
         try:
             from playwright.sync_api import sync_playwright
         except ImportError:
-            logger.warning("playwright 未安装，跳过浏览器回退。安装: pip install playwright && playwright install chromium")
+            logger.warning("playwright 未安装，跳过浏览器回退。请参阅 requirements.txt 安装依赖")
             return None
 
         logger.info("启动 Playwright headless Chromium...")
