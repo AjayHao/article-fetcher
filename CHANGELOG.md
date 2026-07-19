@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.3.2 (2026-07-06)
+
+### 🐛 修复
+
+- **文件名补日期前缀**：`_build_filename` 恢复 `{YYYY-MM-DD}_{title}.md` 格式，Obsidian 内按时间线排序
+- **图片 Referer 空优先 + 403 回退**：新增 `_download_image()`，先空 Referer 请求，403 时自动回退平台 Referer
+
+---
+
 ## v1.3.1 (2026-07-06)
 
 ### 🔒 安全审计修复

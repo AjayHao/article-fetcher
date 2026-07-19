@@ -64,13 +64,13 @@ class ObsidianArchiver:
             return False
 
     def _build_filename(self, title: str, platform: str) -> str:
-        """构建文件名：{sanitized_title}.md"""
-        # 清理标题中的非法文件名字符
+        """构建文件名：{YYYY-MM-DD}_{sanitized_title}.md"""
+        date_str = datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d')
         safe_title = _FILENAME_ILLEGAL.sub('-', title)
         safe_title = re.sub(r'\s+', ' ', safe_title).strip()
-        if len(safe_title) > 80:
-            safe_title = safe_title[:77] + '...'
-        return f"{safe_title}.md"
+        if len(safe_title) > 60:
+            safe_title = safe_title[:57] + '...'
+        return f"{date_str}_{safe_title}.md"
 
     def _build_markdown(self, data: dict) -> str:
         """构建完整的 Markdown 文件内容（Frontmatter + 正文）"""

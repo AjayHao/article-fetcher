@@ -30,9 +30,8 @@ class ImageProcessor:
         """
         url_mapping = {}
 
-        # 动态 Referer：从原文链接提取（兼容第三方CDN），回退平台默认值
-        referer = self._build_referer(article_url, platform)
-        headers = {'Referer': referer} if referer else {}
+        # 平台 Referer（仅作回退用）
+        platform_referer = self._build_referer(article_url, platform)
 
         for idx, img_url in enumerate(image_urls, start=1):
             try:
@@ -44,8 +43,8 @@ class ImageProcessor:
                 oss_filename = f"article-{idx:03d}{ext}"
                 oss_path = f"articles/{platform}/{article_id}/{oss_filename}"
 
-                response = requests.get(img_url, headers=headers, timeout=30)
-                response.raise_for_status()
+                # 下载：优先空 Referer，403 时降级回退平台 Referer
+                response = self._download_image(img_url, platform_referer)
 
                 result = self.bucket.put_object(oss_path, response.content)
 
@@ -62,6 +61,27 @@ class ImageProcessor:
                 continue
 
         return url_mapping
+
+    @staticmethod
+    def _download_image(img_url: str, fallback_referer: str):
+        """下载图片：空 Referer 优先，403 时回退平台 Referer"""
+        # ① 空 Referer
+        try:
+            resp = requests.get(img_url, timeout=30)
+            if resp.status_code != 403:
+                resp.raise_for_status()
+                return resp
+        except requests.HTTPError:
+            pass
+
+        # ② 回退：平台 Referer
+        if fallback_referer:
+            logger.debug(f"空 Referer 失败，回退平台 Referer: {fallback_referer}")
+            resp = requests.get(img_url, headers={'Referer': fallback_referer}, timeout=30)
+            resp.raise_for_status()
+            return resp
+
+        raise RuntimeError(f"图片下载失败: {img_url}")
 
     @staticmethod
     def _build_referer(article_url: str, platform: str) -> str:

@@ -3,10 +3,10 @@ name: article-fetcher
 description: "抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图片，LLM 智能提取关键词，一键存档到 Obsidian 本地知识库（可选 Notion）"
 homepage: https://github.com/AjayHao/article-fetcher
 metadata:
-  { "hermes": { "emoji": "📰", "version": "1.3.1", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "permissions": ["env:read", "net:outbound", "fs:write"], "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }, { "id": "playwright", "kind": "shell", "command": "playwright install chromium", "label": "Install Playwright Chromium browser" }] } }
+  { "hermes": { "emoji": "📰", "version": "1.3.2", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "permissions": ["env:read", "net:outbound", "fs:write"], "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }, { "id": "playwright", "kind": "shell", "command": "playwright install chromium", "label": "Install Playwright Chromium browser" }] } }
 ---
 
-# Article Fetcher v1.3.1
+# Article Fetcher v1.3.2
 
 抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图床，LLM 智能关键词提取，默认存档到 Obsidian 本地知识库（可选 Notion 双写）。
 
@@ -92,7 +92,7 @@ URL → 平台识别 → 内容抓取 → 图片上传 OSS → 关键词提取 (
 
 ## Obsidian 存档格式
 
-文章存入 `{OBSIDIAN_VAULT_PATH}/1-收件箱/`，命名规则 `{title}.md`。
+文章存入 `{OBSIDIAN_VAULT_PATH}/1-收件箱/`，命名规则 `{YYYY-MM-DD}_{title}.md`。
 
 ### 文件示例
 
