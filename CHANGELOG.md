@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.3.4 (2026-07-19)
+
+### 🔒 Tirith `requires.env` 补全
+
+- **`NOTION_API_KEY` / `LLM_API_KEY` 加入 `requires.env`**：代码实际读取的可选凭证必须在元数据声明，消除 CRITICAL exfiltration 误报
+
+---
+
 ## v1.3.3 (2026-07-06)
 
 ### 🔒 Tirith 安全扫描兼容
