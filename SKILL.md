@@ -3,10 +3,10 @@ name: article-fetcher
 description: "抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图片，LLM 智能提取关键词，一键存档到 Obsidian 本地知识库（可选 Notion）"
 homepage: https://github.com/AjayHao/article-fetcher
 metadata:
-  { "hermes": { "emoji": "📰", "version": "1.2.0", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }, { "id": "playwright", "kind": "shell", "command": "playwright install chromium", "label": "Install Playwright Chromium browser" }] } }
+  { "hermes": { "emoji": "📰", "version": "1.3.0", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }, { "id": "playwright", "kind": "shell", "command": "playwright install chromium", "label": "Install Playwright Chromium browser" }] } }
 ---
 
-# Article Fetcher v1.2.0
+# Article Fetcher v1.3.0
 
 抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图床，LLM 智能关键词提取，默认存档到 Obsidian 本地知识库（可选 Notion 双写）。
 
@@ -92,7 +92,7 @@ URL → 平台识别 → 内容抓取 → 图片上传 OSS → 关键词提取 (
 
 ## Obsidian 存档格式
 
-文章存入 `{OBSIDIAN_VAULT_PATH}/1-输入-收件箱/文章收藏/`，命名规则 `{YYYY-MM-DD}_{platform}_{title}.md`。
+文章存入 `{OBSIDIAN_VAULT_PATH}/1-收件箱/`，命名规则 `{title}.md`。
 
 ### 文件示例
 
@@ -120,7 +120,7 @@ article_id: "uuid"
 ### 设计要点
 
 - **Frontmatter**：YAML 格式，Obsidian 原生兼容，tag 列表可直接被 Dataview 查询
-- **文件命名**：日期前缀确保按时间线排序
+- **文件命名**：标题即文件名，非法字符自动替换为 `-`
 - **HTML→Markdown**：通过 `markdownify` 转换，保留链接、图片、粗斜体等格式
 - **非阻塞**：Obsidian 写入失败不影响 Notion 存档（如果配置了双写）
 
@@ -142,7 +142,8 @@ article_id: "uuid"
 ## 关键说明
 
 - **Cookies**：知乎/微信反爬需配置（Netscape 格式），小红书/豆瓣无需登录
-- **知乎 403 二级回退**：HTTP (Cookies) → Playwright 浏览器 → 失败放弃
+- **知乎 / 微信二级回退**：HTTP (Cookies) → Playwright 浏览器 → 失败放弃。自动检测反爬页面（环境异常/验证码）并回退
+- **空内容检测**：正文为空或含反爬关键词时视为抓取失败，不生成垃圾文件
 - **Playwright**：安装 `pip install playwright && playwright install chromium` 后自动生效，未安装时跳过浏览器回退
 - **关键词**：LLM 优先（OpenAI 兼容接口），未配置或失败自动降级本地词频
 - **图片**：上传失败不阻断，成功多少记录多少

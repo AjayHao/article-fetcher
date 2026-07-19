@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.3.0 (2026-07-06)
+
+### 🆕 微信 Playwright 回退 + 空内容检测
+
+- **微信二级回退**：`wechat_fetcher.py` 新增 `_fetch_with_playwright()`，HTTP 反爬时自动 Playwright 回退
+- **空内容检测**：`_is_valid()` 检测正文为空/反爬关键词，阻止垃圾文件生成
+- **图片 Referer 动态化**：`upload_images()` 新增 `article_url` 参数，从原文链接提取 Referer，兼容第三方 CDN
+
+### 🐛 修复
+
+- **文档文件名修正**：SKILL.md 改为 `{title}.md`，与实际输出一致
+
+---
+
 ## v1.2.0 (2026-07-05)
 
 ### 🆕 知乎 403 二级回退

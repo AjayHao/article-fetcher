@@ -65,7 +65,7 @@ def fetch_and_archive_article(url: str, tags: list = None) -> dict:
         image_urls = article_data.get('images', [])
         if image_urls:
             logger.info(f"发现 {len(image_urls)} 张图片，开始上传...")
-            url_mapping = image_processor.upload_images(image_urls, platform, article_id)
+            url_mapping = image_processor.upload_images(image_urls, platform, article_id, article_url=url)
             logger.info(f"图片上传完成：{len(url_mapping)}/{len(image_urls)} 张成功")
 
             content = article_data.get('content', '')
