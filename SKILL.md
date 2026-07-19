@@ -3,10 +3,10 @@ name: article-fetcher
 description: "抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图片，LLM 智能提取关键词，一键存档到 Obsidian 本地知识库（可选 Notion）"
 homepage: https://github.com/AjayHao/article-fetcher
 metadata:
-  { "hermes": { "emoji": "📰", "version": "1.3.0", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }, { "id": "playwright", "kind": "shell", "command": "playwright install chromium", "label": "Install Playwright Chromium browser" }] } }
+  { "hermes": { "emoji": "📰", "version": "1.3.1", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "permissions": ["env:read", "net:outbound", "fs:write"], "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }, { "id": "playwright", "kind": "shell", "command": "playwright install chromium", "label": "Install Playwright Chromium browser" }] } }
 ---
 
-# Article Fetcher v1.3.0
+# Article Fetcher v1.3.1
 
 抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图床，LLM 智能关键词提取，默认存档到 Obsidian 本地知识库（可选 Notion 双写）。
 
@@ -149,15 +149,16 @@ article_id: "uuid"
 - **图片**：上传失败不阻断，成功多少记录多少
 - **时间**：统一 `YYYY-MM-DD HH:MM:SS`，缺失时留空（不伪造）
 - **模块**：`main.py` 可作 Python 模块调用：`from main import fetch_and_archive_article`
-- **Obsidian 优先**：本地知识库零外部依赖，符合"数据私有化"理念
+- **Obsidian 数据本地存储**：`.md` 文件写入本地磁盘，不经过网络。LLM 关键词提取为可选功能，启用时文章摘要会发送至配置的 API 端点
 
 ## 安全与隐私
 
 - **URL 校验**：严格白名单匹配 hostname，拒绝路径拼接攻击
 - **Cookie 隔离**：Netscape Cookies 按域名过滤，仅附加到匹配的请求
-- **LLM 数据外发**：配置 `LLM_API_KEY` 时，文章内容会发送至对应 API（仅用于关键词提取）
+- **LLM 数据外发**：配置 `LLM_API_KEY` 时，文章内容（前 12000 字符）会发送至配置的 API 端点（仅用于关键词提取）。不配置则不发送
+- **图片下载**：自动下载原文图片并上传 OSS，过程中会请求第三方图片服务器，请确保有权抓取目标文章
 - **敏感信息**：AK/SK/Key 等仅存储于本地，skill 不会外泄
-- **Obsidian 数据完全本地**：`.md` 文件写入本地磁盘，零网络外发
+- **Obsidian 数据本地**：`.md` 文件写入本地磁盘，零网络外发
 - **权限最小化**：OSS Bucket 建议仅授予 PutObject/GetObject；Notion Integration 仅授予目标数据库读写权限
 - **依赖锁定**：requirements.txt 使用精确版本号，避免供应链风险
 
