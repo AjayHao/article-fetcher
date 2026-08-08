@@ -17,6 +17,7 @@
 
 - **Vault 去序号**：存档目录从 `1-收件箱/` 改为 `收件箱/`（知衍库 2026-07 架构调整）
 - **移除 `distilled: false`**：蒸馏状态判定已改为文件存在性模型，不再依赖 frontmatter 标记
+- **裁撤 `wechat-article-capture` 技能**：v1.3.5 的 MHTML/HTML 离线模式已覆盖其全部功能，无需单独维护
 
 ---
 
