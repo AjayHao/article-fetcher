@@ -20,7 +20,7 @@ class ObsidianArchiver:
             from config import config
             vault_path = config.obsidian_vault_path
         self.vault_path = vault_path
-        self.article_dir = os.path.join(vault_path, '1-收件箱')
+        self.article_dir = os.path.join(vault_path, '收件箱')
 
     def archive_article(self, article_data: dict) -> bool:
         """

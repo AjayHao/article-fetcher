@@ -111,7 +111,9 @@ URL → 平台识别 → 内容抓取 → 图片上传 OSS → 关键词提取 (
 
 ## Obsidian 存档格式
 
-文章存入 `{OBSIDIAN_VAULT_PATH}/1-收件箱/`，命名规则 `{YYYY-MM-DD}_{title}.md`。
+文章存入 `{OBSIDIAN_VAULT_PATH}/收件箱/`，命名规则 `{YYYY-MM-DD}_{title}.md`。
+
+> 💡 **本地适配**：Vault 去序号后，存档目录从 `1-收件箱/` 改为 `收件箱/`（`obsidian_archiver.py` 已同步修正）。
 
 ### 文件示例
 

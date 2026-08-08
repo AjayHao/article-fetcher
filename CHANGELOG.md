@@ -13,6 +13,11 @@
   - MHTML 编码：`get_payload(decode=True)` 取 bytes 后按 `get_content_charset()` 或 `utf-8` 解码，避免乱码
   - `data:image/svg+xml` 占位符过滤，图片列表归一化（去 query、去重）确保 URL 替换可命中
 
+### 🔧 本地适配
+
+- **Vault 去序号**：存档目录从 `1-收件箱/` 改为 `收件箱/`（知衍库 2026-07 架构调整）
+- **移除 `distilled: false`**：蒸馏状态判定已改为文件存在性模型，不再依赖 frontmatter 标记
+
 ---
 
 ## v1.3.4 (2026-07-19)
