@@ -3,10 +3,10 @@ name: article-fetcher
 description: "抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图片，LLM 智能提取关键词，一键存档到 Obsidian 本地知识库（可选 Notion）"
 homepage: https://github.com/AjayHao/article-fetcher
 metadata:
-  { "hermes": { "emoji": "📰", "version": "1.3.4", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT", "NOTION_API_KEY", "LLM_API_KEY"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "permissions": ["env:read", "net:outbound", "fs:write"], "allowedEnv": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT", "OBSIDIAN_VAULT_PATH", "NOTION_API_KEY", "NOTION_ARTICLE_DATABASE_ID", "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL", "WECHAT_COOKIES_FILE", "ZHIHU_COOKIES_FILE"], "securityNote": "OSS 凭证用于图片上传存储；Notion 和 LLM 为可选集成，不配置则跳过对应功能", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }, { "id": "playwright", "kind": "shell", "command": "playwright install chromium", "label": "Install Playwright Chromium browser" }] } }
+  { "hermes": { "emoji": "📰", "version": "1.3.5", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT", "NOTION_API_KEY", "LLM_API_KEY"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "permissions": ["env:read", "net:outbound", "fs:write"], "allowedEnv": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT", "OBSIDIAN_VAULT_PATH", "NOTION_API_KEY", "NOTION_ARTICLE_DATABASE_ID", "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL", "WECHAT_COOKIES_FILE", "ZHIHU_COOKIES_FILE"], "securityNote": "OSS 凭证用于图片上传存储；Notion 和 LLM 为可选集成，不配置则跳过对应功能", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }, { "id": "playwright", "kind": "shell", "command": "playwright install chromium", "label": "Install Playwright Chromium browser" }] } }
 ---
 
-# Article Fetcher v1.3.4
+# Article Fetcher v1.3.5
 
 抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图床，LLM 智能关键词提取，默认存档到 Obsidian 本地知识库（可选 Notion 双写）。
 
@@ -77,6 +77,25 @@ python3 main.py "文章 URL" [标签1] [标签2]
 ```
 
 **支持平台**：微信公众号 (`mp.weixin.qq.com`)、小红书 (`xiaohongshu.com` / `xhslink.com`)、豆瓣 (`douban.com`)、知乎 (`zhihu.com`)
+
+## 离线输入（HTML / MHTML）
+
+除 URL 外，支持直接喂入 HTML 文本或 `.mhtml` 文件（源自 wechat-article-capture 技能的三级策略），由 article-fetcher 负责图片上传 OSS、替换 URL 与归档。解析层已内置三处陷阱修复：微信懒加载 `data-src`→`src` 并删除 `data-src`、MHTML 编码乱码（charset 探测）、`data:image/svg+xml` 占位符过滤。
+
+```bash
+# 三级：MHTML 文件
+python3 main.py --mhtml page.mhtml --url https://mp.weixin.qq.com/s/xxx 标签1
+
+# 二级：粘贴 HTML（stdin）
+cat page.html | python3 main.py --html - --url https://mp.weixin.qq.com/s/xxx
+
+# 一级 / 原路径（不变）
+python3 main.py "https://mp.weixin.qq.com/s/xxx" 标签1
+```
+
+- `--platform` 默认 `wechat`（直传 HTML/MHTML 无 URL，无法自动探测平台）
+- `--url` 可选：作为图片下载 Referer 与归档 link；不传时回退平台默认 Referer（微信 `mp.weixin.qq.com`）
+- 解析产出标准 `article_data`，后半段管线（OSS 上传 → 替换 → 打标 → 字数 → 归档）与 URL 模式完全复用
 
 ## 处理流程
 

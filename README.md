@@ -3,7 +3,7 @@
 抓取微信公众号、小红书、豆瓣、知乎等平台文章，自动处理图片上传至阿里云 OSS，
 LLM 智能提取关键词（本地词频降级），默认存档到 Obsidian 本地知识库（可选 Notion 双写）。
 
-**版本**: 1.3.4 | **许可**: MIT | **作者**: Ajay Hao
+**版本**: 1.3.5 | **许可**: MIT | **作者**: Ajay Hao
 
 ---
 
@@ -168,6 +168,25 @@ else:
 | 知乎 | `~/.cookies/zhihu_cookies.txt` | ✅ 必需 |
 | 微信 | `~/.cookies/wechat_cookies.txt` | ❌ 可选 |
 | 小红书 / 豆瓣 | — | 不需要 |
+
+## 离线输入（HTML / MHTML）
+
+除 URL 抓取外，也支持直接传入 HTML 文本或 `.mhtml` 文件（微信文章三级采集策略），由本工具完成图片 OSS 上传、URL 替换与 Obsidian/Notion 归档。
+
+```bash
+# 三级：MHTML 文件
+python3 main.py --mhtml page.mhtml --url https://mp.weixin.qq.com/s/xxx 标签1
+
+# 二级：粘贴 HTML（stdin）
+cat page.html | python3 main.py --html - --url https://mp.weixin.qq.com/s/xxx
+
+# 一级 / 原路径（不变）
+python3 main.py "https://mp.weixin.qq.com/s/xxx" 标签1
+```
+
+- `--platform` 默认 `wechat`（直传 HTML/MHTML 无 URL，无法自动探测平台）
+- `--url` 可选：图片下载 Referer 与归档 link；不传时回退平台默认 Referer（微信 `mp.weixin.qq.com`）
+- 已修复微信懒加载（`data-src`→`src` 并删除）、MHTML 编码乱码、`data:image/svg+xml` 占位符过滤
 
 ## 🔌 扩展新平台
 
