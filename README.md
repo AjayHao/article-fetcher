@@ -3,7 +3,7 @@
 抓取微信公众号、小红书、豆瓣、知乎等平台文章，自动处理图片上传至阿里云 OSS，
 LLM 智能提取关键词（本地词频降级），默认存档到 Obsidian 本地知识库（可选 Notion 双写）。
 
-**版本**: 1.3.5 | **许可**: MIT | **作者**: Ajay Hao
+**版本**: 1.3.6 | **许可**: MIT | **作者**: Ajay Hao
 
 ---
 
@@ -196,7 +196,8 @@ python3 main.py "https://mp.weixin.qq.com/s/xxx" 标签1
 
 ## 🔐 安全说明
 
-- **Obsidian 数据完全本地**: `.md` 文件写入本地磁盘，零网络外发
+- **Obsidian 本地落盘 + 图片云存储**: `.md` 笔记写入本地磁盘（Obsidian 部分纯本地），但文章图片会先上传至阿里云 OSS 图床（必需）后再嵌入笔记，**并非「零网络外发」**
+- **LLM 关键词提取（可选）**: 配置 `LLM_API_KEY` 时，文章文本（前 12000 字符）会发送至你配置的 LLM API 端点；不配置则仅使用本地词频方案，无任何文本外发
 - Cookies 等敏感信息存储在本地，skill 不会上传或外泄
 - OSS Bucket 建议配置最小权限（仅 PutObject/GetObject）
 - Notion Integration 仅授予目标数据库读写权限

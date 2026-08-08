@@ -3,10 +3,10 @@ name: article-fetcher
 description: "抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图片，LLM 智能提取关键词，一键存档到 Obsidian 本地知识库（可选 Notion）"
 homepage: https://github.com/AjayHao/article-fetcher
 metadata:
-  { "hermes": { "emoji": "📰", "version": "1.3.5", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT", "NOTION_API_KEY", "LLM_API_KEY"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "permissions": ["env:read", "net:outbound", "fs:write"], "allowedEnv": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT", "OBSIDIAN_VAULT_PATH", "NOTION_API_KEY", "NOTION_ARTICLE_DATABASE_ID", "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL", "WECHAT_COOKIES_FILE", "ZHIHU_COOKIES_FILE"], "securityNote": "OSS 凭证用于图片上传存储；Notion 和 LLM 为可选集成，不配置则跳过对应功能", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }, { "id": "playwright", "kind": "shell", "command": "playwright install chromium", "label": "Install Playwright Chromium browser" }] } }
+  { "hermes": { "emoji": "📰", "version": "1.3.6", "requires": { "bins": ["python3"], "env": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT", "NOTION_API_KEY", "LLM_API_KEY"] }, "primaryEnv": "OBSIDIAN_VAULT_PATH", "permissions": ["env:read", "net:outbound", "fs:write"], "allowedEnv": ["ALIYUN_OSS_AK", "ALIYUN_OSS_SK", "ALIYUN_OSS_BUCKET_ID", "ALIYUN_OSS_ENDPOINT", "OBSIDIAN_VAULT_PATH", "NOTION_API_KEY", "NOTION_ARTICLE_DATABASE_ID", "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL", "WECHAT_COOKIES_FILE", "ZHIHU_COOKIES_FILE"], "securityNote": "OSS 凭证用于图片上传存储（图片外发至阿里云 OSS 为必需）；Notion 和 LLM 为可选集成，不配置则跳过对应功能；配置 LLM 时文章文本（前 12000 字符）会发送至你配置的 LLM API 端点", "install": [{ "id": "pip", "kind": "pip", "packages": "requests oss2 python-dotenv beautifulsoup4 lxml notion-client markdownify pyyaml", "label": "Install Python dependencies" }, { "id": "playwright", "kind": "shell", "command": "playwright install chromium", "label": "Install Playwright Chromium browser" }] } }
 ---
 
-# Article Fetcher v1.3.5
+# Article Fetcher v1.3.6
 
 抓取微信公众号、小红书、豆瓣、知乎文章，自动上传 OSS 图床，LLM 智能关键词提取，默认存档到 Obsidian 本地知识库（可选 Notion 双写）。
 
@@ -170,7 +170,7 @@ article_id: "uuid"
 - **图片**：上传失败不阻断，成功多少记录多少
 - **时间**：统一 `YYYY-MM-DD HH:MM:SS`，缺失时留空（不伪造）
 - **模块**：`main.py` 可作 Python 模块调用：`from main import fetch_and_archive_article`
-- **Obsidian 数据本地存储**：`.md` 文件写入本地磁盘，不经过网络。LLM 关键词提取为可选功能，启用时文章摘要会发送至配置的 API 端点
+- **Obsidian 本地落盘 + 图片 OSS 上传**：`.md` 笔记写入本地磁盘，但文章图片会上传至阿里云 OSS 图床（必需）后再嵌入，并非纯本地；LLM 关键词提取为可选功能，启用时文章文本（前 12000 字符）会发送至配置的 API 端点
 
 ## 安全与隐私
 
@@ -179,7 +179,7 @@ article_id: "uuid"
 - **LLM 数据外发**：配置 `LLM_API_KEY` 时，文章内容（前 12000 字符）会发送至配置的 API 端点（仅用于关键词提取）。不配置则不发送
 - **图片下载**：自动下载原文图片并上传 OSS，过程中会请求第三方图片服务器，请确保有权抓取目标文章
 - **敏感信息**：AK/SK/Key 等仅存储于本地，skill 不会外泄
-- **Obsidian 数据本地**：`.md` 文件写入本地磁盘，零网络外发
+- **Obsidian 本地落盘**：`.md` 文件写入本地磁盘；但文章图片需上传阿里云 OSS（必需），因此并非「零网络外发」
 - **权限最小化**：OSS Bucket 建议仅授予 PutObject/GetObject；Notion Integration 仅授予目标数据库读写权限
 - **依赖锁定**：requirements.txt 使用精确版本号，避免供应链风险
 

@@ -3,7 +3,7 @@
 优先使用 LLM（OpenAI 兼容接口）理解文章核心内容并提取关键词
 LLM 不可用或未配置时，降级为本地词频分析
 
-版本：v1.3.5
+版本：v1.3.6
 """
 import re
 import json
@@ -72,6 +72,10 @@ def _llm_chat(system_prompt: str, user_prompt: str) -> str | None:
     Returns:
         AI 响应文本，失败返回 None。
     """
+    # 安全约束（供安全审计追溯）：
+    # 1. 本外发为【可选】功能，仅当 config.llm_available（用户显式配置 LLM_API_KEY）时触发；
+    # 2. endpoint 来自用户配置的环境变量 LLM_BASE_URL，非硬编码第三方地址；
+    # 3. 发送内容已在 extract_tags_llm 中截断至前 12000 字符，不含完整原文。
     endpoint = f"{config.llm_base_url.rstrip('/')}/chat/completions"
     headers = {
         'Authorization': f'Bearer {config.llm_api_key}',

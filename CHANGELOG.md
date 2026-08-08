@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.3.6 (2026-08-08)
+
+### 🔒 安全修复（基于 ClawHub SkillSpector 审计）
+
+- **P0 — lxml XXE 漏洞（High）**：`requirements.txt` 中 `lxml==6.0.4` → `lxml==6.1.0`，修复 CVE-2026-41066（`iterparse` / `ETCompatXMLParser` 默认配置 XXE）。经核查代码未使用 lxml 解析不可信 XML（MHTML 走 `email` 库、HTML 走 `BeautifulSoup('html.parser')`），升级即消除风险面。
+- **P1 — 校正误导性「零网络外发」声明（Medium, Intent-Code Divergence）**：删除 README / SKILL 中「Obsidian 数据完全本地 / 零网络外发 / 不经过网络」等绝对化表述，统一为「Obsidian `.md` 本地落盘 + 文章图片上传阿里云 OSS（必需）」的准确描述。
+- **P2 — LLM 外发声明补强（Medium, External Transmission）**：在 `utils/tag_extractor.py` 的 LLM 调用处补充安全注释（可选触发 / endpoint 来自 `LLM_BASE_URL` 配置 / 仅外发前 12000 字符）；README 安全说明新增 LLM 文本外发条目，SKILL `securityNote` 同步声明。
+- **P3 — 删除「绕过安全拦截」笔记**：移除 `references/tirith-blocking.md`（审计报告指出的 bypass-prior-blocking 笔记），并确认无其它文件引用。
+
 ## v1.3.5 (2026-08-08)
 
 ### ✨ 离线输入（HTML / MHTML）
