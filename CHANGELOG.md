@@ -19,6 +19,10 @@
 - **移除 `distilled: false`**：蒸馏状态判定已改为文件存在性模型，不再依赖 frontmatter 标记
 - **裁撤 `wechat-article-capture` 技能**：v1.3.5 的 MHTML/HTML 离线模式已覆盖其全部功能，无需单独维护
 
+### 🐛 已知问题
+
+- **Notion 转换**：`### | title` 格式标题（markdown heading 后接 `|`）会被 Notion API 误判为表格分隔符，导致 `rich_text` 为空 → `ValidationError`。Markdown 规范中 `###` 后应为空格，`### |` 是原文章的不规范写法。暂不修复（Notion 为可选功能，Obsidian 不受影响）。
+
 ---
 
 ## v1.3.4 (2026-07-19)
