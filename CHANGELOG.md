@@ -21,7 +21,7 @@
 
 ### 🐛 已知问题
 
-- **Notion 转换**：`### | title` 格式标题（markdown heading 后接 `|`）会被 Notion API 误判为表格分隔符，导致 `rich_text` 为空 → `ValidationError`。Markdown 规范中 `###` 后应为空格，`### |` 是原文章的不规范写法。暂不修复（Notion 为可选功能，Obsidian 不受影响）。
+- ~~**Notion 转换**：`### | title` 格式标题会被 Notion API 误判为表格分隔符~~ **已修复 (v1.3.5-local)**：根因为 `_parse_inline_html` 将内联 `<img>` 当作 image block 塞入 `rich_text`，导致 `text` 字段缺失。修复为内联图片转文本链接 `[alt](url)`。
 
 ---
 
